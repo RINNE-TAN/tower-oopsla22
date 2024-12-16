@@ -44,192 +44,172 @@ let call_modified_error x f v1 v2 dump =
   raise
     (RuntimeError
        ( Format.sprintf
-           "Call to function '%s' with value %s for argument '%s' should not have \
-            modified that argument, got value '%s'"
-           (Symbol.name f)
-           (Ir_pp.show_value v1)
-           (Symbol.name x)
-           (Ir_pp.show_value v2)
-       , dump ))
-;;
+           "Call to function '%s' with value %s for argument '%s' should not \
+            have modified that argument, got value '%s'"
+           (Symbol.name f) (Ir_pp.show_value v1) (Symbol.name x)
+           (Ir_pp.show_value v2),
+         dump ))
 
 let unassign_unequal_error x e v1 v2 dump =
   raise
     (RuntimeError
        ( Format.sprintf
-           "Could not uncompute variable '%s' using expression '%s'; expected value \
-            '%s', got value '%s'"
-           (Symbol.name x)
-           (Ir_pp.show_exp e)
-           (Ir_pp.show_value v1)
-           (Ir_pp.show_value v2)
-       , dump ))
-;;
+           "Could not uncompute variable '%s' using expression '%s'; expected \
+            value '%s', got value '%s'"
+           (Symbol.name x) (Ir_pp.show_exp e) (Ir_pp.show_value v1)
+           (Ir_pp.show_value v2),
+         dump ))
 
 let unassign_deallocate_error x e v1 v2 dump =
   raise
     (RuntimeError
        ( Format.sprintf
-           "Could not deallocate variable '%s' using expression '%s'; expected value \
-            '%s', heap contains '%s'"
-           (Symbol.name x)
-           (Ir_pp.show_exp e)
-           (Ir_pp.show_value v1)
-           (Ir_pp.show_value v2)
-       , dump ))
-;;
+           "Could not deallocate variable '%s' using expression '%s'; expected \
+            value '%s', heap contains '%s'"
+           (Symbol.name x) (Ir_pp.show_exp e) (Ir_pp.show_value v1)
+           (Ir_pp.show_value v2),
+         dump ))
 
 let word_size_error n word_size dump =
   raise
     (RuntimeError
-       (Format.sprintf "Could not access bit %d beyond word size of %d" n word_size, dump))
-;;
+       ( Format.sprintf "Could not access bit %d beyond word size of %d" n
+           word_size,
+         dump ))
 
 let static_init_type_error x t = raise (StaticError (StaticInitType (x, t)))
 let static_init_length_error x n = raise (StaticError (StaticInitLength (x, n)))
 
 let static_error_name = function
   | UnknownTypeIdentifier t ->
-    Format.sprintf "Unknown type identifier: '%s'" (Symbol.name t)
-  | UnknownIdentifier t -> Format.sprintf "Unknown identifier: '%s'" (Symbol.name t)
+      Format.sprintf "Unknown type identifier: '%s'" (Symbol.name t)
+  | UnknownIdentifier t ->
+      Format.sprintf "Unknown identifier: '%s'" (Symbol.name t)
   | UnknownFunctionIdentifier t ->
-    Format.sprintf "Unknown function identifier: '%s'" (Symbol.name t)
+      Format.sprintf "Unknown function identifier: '%s'" (Symbol.name t)
   | IdentifierAlreadyBound t ->
-    Format.sprintf "Cannot bind already bound identifier: '%s'" (Symbol.name t)
+      Format.sprintf "Cannot bind already bound identifier: '%s'"
+        (Symbol.name t)
   | LocalVariableNotUnbound t ->
-    Format.sprintf "Local variable was not unbound: '%s'" (Symbol.name t)
-  | ArgumentUnbound t -> Format.sprintf "Cannot unbound argument: '%s'" (Symbol.name t)
+      Format.sprintf "Local variable was not unbound: '%s'" (Symbol.name t)
+  | ArgumentUnbound t ->
+      Format.sprintf "Cannot unbound argument: '%s'" (Symbol.name t)
   | ArgumentListLength (a, n, n') ->
-    Format.sprintf
-      "Cannot call function '%s' with %d arguments, expected %d"
-      (Symbol.name a)
-      n'
-      n
+      Format.sprintf "Cannot call function '%s' with %d arguments, expected %d"
+        (Symbol.name a) n' n
   | ArgumentTypeMismatch (f, a, t, t') ->
-    Format.sprintf
-      "Argument type mismatch in function '%s' for argument '%s': expected '%s', got '%s'"
-      (Symbol.name f)
-      (Symbol.name a)
-      (Ast_pp.show_typ t)
-      (Ast_pp.show_typ t')
+      Format.sprintf
+        "Argument type mismatch in function '%s' for argument '%s': expected \
+         '%s', got '%s'"
+        (Symbol.name f) (Symbol.name a) (Ast_pp.show_typ t) (Ast_pp.show_typ t')
   | MismatchedBranches t ->
-    Format.sprintf
-      "Branches of if-statement mismatched: only one side binds variable '%s'"
-      (Symbol.name t)
+      Format.sprintf
+        "Branches of if-statement mismatched: only one side binds variable '%s'"
+        (Symbol.name t)
   | ModifiedCondition t ->
-    Format.sprintf "Cannot modify condition '%s' within if-expression" (Symbol.name t)
+      Format.sprintf "Cannot modify condition '%s' within if-expression"
+        (Symbol.name t)
   | IncorrectReturnType (f, t, t') ->
-    Format.sprintf
-      "Incorrect return type for function '%s': expected '%s', got '%s'"
-      (Symbol.name f)
-      (Ast_pp.show_typ t)
-      (Ast_pp.show_typ t')
+      Format.sprintf
+        "Incorrect return type for function '%s': expected '%s', got '%s'"
+        (Symbol.name f) (Ast_pp.show_typ t) (Ast_pp.show_typ t')
   | InfiniteType t ->
-    Format.sprintf
-      "Cannot declare recursive type '%s' without pointer indirection; size would be \
-       infinite"
-      (Symbol.name t)
+      Format.sprintf
+        "Cannot declare recursive type '%s' without pointer indirection; size \
+         would be infinite"
+        (Symbol.name t)
   | UnexpectedBound f ->
-    Format.sprintf "Unexpected bound on function call '%s'" (Symbol.name f)
-  | MissingBound f -> Format.sprintf "Missing bound on function call '%s'" (Symbol.name f)
+      Format.sprintf "Unexpected bound on function call '%s'" (Symbol.name f)
+  | MissingBound f ->
+      Format.sprintf "Missing bound on function call '%s'" (Symbol.name f)
   | IncorrectBound (f, b) ->
-    Format.sprintf
-      "Cannot call function '%s' without decreased bound: got %s"
-      (Symbol.name f)
-      (match b with
-      | Some b -> "'" ^ Ast_pp.show_bound b ^ "'"
-      | None -> "no bound")
+      Format.sprintf "Cannot call function '%s' without decreased bound: got %s"
+        (Symbol.name f)
+        (match b with
+        | Some b -> "'" ^ Ast_pp.show_bound b ^ "'"
+        | None -> "no bound")
   | MalformedBound (f, b) ->
-    Format.sprintf
-      "Definition of function '%s' must use variable as bound, got '%s'"
-      (Symbol.name f)
-      (Ast_pp.show_bound b)
+      Format.sprintf
+        "Definition of function '%s' must use variable as bound, got '%s'"
+        (Symbol.name f) (Ast_pp.show_bound b)
   | StaticInitType (x, t) ->
-    Format.sprintf
-      "Could not initialize static variable '%s' using values not of type '%s'"
-      (Symbol.name x)
-      (Ast_pp.show_typ t)
+      Format.sprintf
+        "Could not initialize static variable '%s' using values not of type \
+         '%s'"
+        (Symbol.name x) (Ast_pp.show_typ t)
   | StaticInitLength (x, n) ->
-    Format.sprintf
-      "Could not initialize static variable '%s' of using list not of length %d"
-      (Symbol.name x)
-      n
+      Format.sprintf
+        "Could not initialize static variable '%s' of using list not of length \
+         %d"
+        (Symbol.name x) n
   | ProjectFrom (t, n) ->
-    Format.sprintf
-      "Cannot project field %d from incorrect type, got '%s'"
-      n
-      (Ast_pp.show_typ t)
+      Format.sprintf "Cannot project field %d from incorrect type, got '%s'" n
+        (Ast_pp.show_typ t)
   | UnaryOn t ->
-    Format.sprintf "Cannot apply unary operator to type '%s'" (Ast_pp.show_typ t)
+      Format.sprintf "Cannot apply unary operator to type '%s'"
+        (Ast_pp.show_typ t)
   | BinaryOn (t1, t2) ->
-    Format.sprintf
-      "Cannot apply binary operator to types '%s', '%s'"
-      (Ast_pp.show_typ t1)
-      (Ast_pp.show_typ t2)
+      Format.sprintf "Cannot apply binary operator to types '%s', '%s'"
+        (Ast_pp.show_typ t1) (Ast_pp.show_typ t2)
   | UnassignType (x, t, t') ->
-    Format.sprintf
-      "Cannot unassign variable '%s' of type '%s' using expression of different type '%s'"
-      (Symbol.name x)
-      (Ast_pp.show_typ t)
-      (Ast_pp.show_typ t')
+      Format.sprintf
+        "Cannot unassign variable '%s' of type '%s' using expression of \
+         different type '%s'"
+        (Symbol.name x) (Ast_pp.show_typ t) (Ast_pp.show_typ t')
   | SwapType (x, t, x', t') ->
-    Format.sprintf
-      "Cannot swap variables '%s' and '%s' of different types '%s' and '%s"
-      (Symbol.name x)
-      (Symbol.name x')
-      (Ast_pp.show_typ t)
-      (Ast_pp.show_typ t')
+      Format.sprintf
+        "Cannot swap variables '%s' and '%s' of different types '%s' and '%s"
+        (Symbol.name x) (Symbol.name x') (Ast_pp.show_typ t)
+        (Ast_pp.show_typ t')
   | MemSwapType (e, t, x', t') ->
-    Format.sprintf
-      "Cannot swap with memory using '%s' pointing to type '%s' and variable '%s' of \
-       different type '%s'"
-      (Ast_pp.show_exp e)
-      (Ast_pp.show_typ t)
-      (Symbol.name x')
-      (Ast_pp.show_typ t')
+      Format.sprintf
+        "Cannot swap with memory using '%s' pointing to type '%s' and variable \
+         '%s' of different type '%s'"
+        (Ast_pp.show_exp e) (Ast_pp.show_typ t) (Symbol.name x')
+        (Ast_pp.show_typ t')
   | MemSwapNotPtr (e, t) ->
-    Format.sprintf
-      "Cannot swap with memory using '%s' of non-pointer type '%s'"
-      (Ast_pp.show_exp e)
-      (Ast_pp.show_typ t)
+      Format.sprintf
+        "Cannot swap with memory using '%s' of non-pointer type '%s'"
+        (Ast_pp.show_exp e) (Ast_pp.show_typ t)
   | IfType (x, t) ->
-    Format.sprintf
-      "Condition of if-statement cannot be '%s' of non-Boolean type '%s'"
-      (Symbol.name x)
-      (Ast_pp.show_typ t)
+      Format.sprintf
+        "Condition of if-statement cannot be '%s' of non-Boolean type '%s'"
+        (Symbol.name x) (Ast_pp.show_typ t)
   | PatternMismatch (pat, t) ->
-    Format.sprintf
-      "Cannot bind type '%s' to pattern '%s'"
-      (Ast_pp.show_typ t)
-      (Ast_pp.show_pat pat)
+      Format.sprintf "Cannot bind type '%s' to pattern '%s'" (Ast_pp.show_typ t)
+        (Ast_pp.show_pat pat)
   | FuncOnTuple (f, v) ->
-    Format.sprintf
-      "Cannot call function '%s' on tuple '%s', must bind to variable first"
-      (Symbol.name f)
-      (Ast_pp.show_value v)
+      Format.sprintf
+        "Cannot call function '%s' on tuple '%s', must bind to variable first"
+        (Symbol.name f) (Ast_pp.show_value v)
   | DupArg (f, v) ->
-    Format.sprintf
-      "Cannot call function '%s' with argument '%s' twice, must bind to different \
-       variable first"
-      (Symbol.name f)
-      (Symbol.name v)
-;;
+      Format.sprintf
+        "Cannot call function '%s' with argument '%s' twice, must bind to \
+         different variable first"
+        (Symbol.name f) (Symbol.name v)
 
 let unknown_type_identifier t = raise (StaticError (UnknownTypeIdentifier t))
 let unknown_identifier t = raise (StaticError (UnknownIdentifier t))
-let unknown_func_identifier t = raise (StaticError (UnknownFunctionIdentifier t))
+
+let unknown_func_identifier t =
+  raise (StaticError (UnknownFunctionIdentifier t))
+
 let identifier_already_bound t = raise (StaticError (IdentifierAlreadyBound t))
 let local_not_unbound t = raise (StaticError (LocalVariableNotUnbound t))
 let argument_unbound t = raise (StaticError (ArgumentUnbound t))
-let argument_list_length a n n' = raise (StaticError (ArgumentListLength (a, n, n')))
+
+let argument_list_length a n n' =
+  raise (StaticError (ArgumentListLength (a, n, n')))
 
 let argument_type_mismatch f a t t' =
   raise (StaticError (ArgumentTypeMismatch (f, a, t, t')))
-;;
 
 let mismatched_branches t = raise (StaticError (MismatchedBranches t))
 let modified_condition t = raise (StaticError (ModifiedCondition t))
-let incorrect_return_type f t t' = raise (StaticError (IncorrectReturnType (f, t, t')))
+
+let incorrect_return_type f t t' =
+  raise (StaticError (IncorrectReturnType (f, t, t')))
+
 let infinite_type t = raise (StaticError (InfiniteType t))
 let unexpected_bound f = raise (StaticError (UnexpectedBound f))
 let missing_bound f = raise (StaticError (MissingBound f))

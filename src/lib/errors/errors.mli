@@ -45,22 +45,13 @@ type state_dumper = unit -> unit
 
 exception RuntimeError of string * state_dumper
 
-val call_modified_error : Ast.id -> Ast.id -> Ir.value -> Ir.value -> state_dumper -> 'a
+val call_modified_error :
+  Ast.id -> Ast.id -> Ir.value -> Ir.value -> state_dumper -> 'a
 
-val unassign_unequal_error
-  :  Ast.id
-  -> Ir.exp
-  -> Ir.value
-  -> Ir.value
-  -> state_dumper
-  -> 'a
+val unassign_unequal_error :
+  Ast.id -> Ir.exp -> Ir.value -> Ir.value -> state_dumper -> 'a
 
-val unassign_deallocate_error
-  :  Ast.id
-  -> Ir.exp
-  -> Ir.value
-  -> Ir.value
-  -> state_dumper
-  -> 'a
+val unassign_deallocate_error :
+  Ast.id -> Ir.exp -> Ir.value -> Ir.value -> state_dumper -> 'a
 
 val word_size_error : int -> int -> state_dumper -> 'a

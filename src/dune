@@ -1,6 +1,6 @@
 (menhir
-  (flags (--explain))
-  (modules parser))
+ (flags (--explain))
+ (modules parser))
 
 (ocamllex lexer)
 
@@ -8,4 +8,5 @@
  (name main)
  (libraries core lib)
  (ocamlopt_flags -O3)
- (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_jane ppx_variants_conv)))
+ (preprocess
+  (pps ppx_deriving.show ppx_deriving.eq ppx_jane ppx_variants_conv)))

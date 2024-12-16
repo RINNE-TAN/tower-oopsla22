@@ -5,33 +5,30 @@ open Prim_circuit
 open Prim_sim
 
 let dump_ctx ctx =
-  let max = State.keys ctx |> List.max_elt ~compare:Int.compare |> Option.value_exn in
+  let max =
+    Hashtbl.keys ctx |> List.max_elt ~compare:Int.compare |> Option.value_exn
+  in
   List.init (max + 1) ~f:(fun i -> i)
   |> List.map ~f:(fun i ->
-         Int.to_string i
-         ^ ": "
-         ^ Bool.to_string (State.find_or_add ctx ~default:(fun _ -> false) i))
-  |> String.concat ~sep:"\n"
-  |> eprintf "%s\n%!"
-;;
+         Int.to_string i ^ ": "
+         ^ Bool.to_string (Hashtbl.find_or_add ctx ~default:(fun _ -> false) i))
+  |> String.concat ~sep:"\n" |> eprintf "%s\n%!"
 
 let ctx_equal s1 s2 =
-  State.for_alli s2 ~f:(fun ~key ~data ->
-      match State.find s1 key with
+  Hashtbl.for_alli s2 ~f:(fun ~key ~data ->
+      match Hashtbl.find s1 key with
       | Some d -> Bool.equal d data
       | None -> not data)
-  && State.for_alli s1 ~f:(fun ~key ~data ->
-         match State.find s2 key with
+  && Hashtbl.for_alli s1 ~f:(fun ~key ~data ->
+         match Hashtbl.find s2 key with
          | Some d -> Bool.equal d data
          | None -> not data)
-;;
 
 let is_subset s1 s2 =
-  State.for_alli s1 ~f:(fun ~key ~data ->
-      match State.find s2 key with
+  Hashtbl.for_alli s1 ~f:(fun ~key ~data ->
+      match Hashtbl.find s2 key with
       | Some d -> Bool.equal d data
       | None -> not data)
-;;
 
 let test_num_nbit n x =
   let a = Alloc.empty () in
@@ -39,16 +36,15 @@ let test_num_nbit n x =
   let y = num x w1 |> Gates.to_list in
   let expected =
     List.concat
-    @@ List.init n ~f:(fun i -> if x land (1 lsl i) <> 0 then [ Pnot (i, []) ] else [])
+    @@ List.init n ~f:(fun i ->
+           if x land (1 lsl i) <> 0 then [ Pnot (i, []) ] else [])
   in
   assert (List.equal Prim_circuit.equal_gate y expected)
-;;
 
 let () =
   print_endline "Testing num";
   let n = 16 in
   (List.init (1 lsl n) ~f:(test_num_nbit n) : 'a list) |> ignore
-;;
 
 let () =
   print_endline "Testing land";
@@ -57,40 +53,41 @@ let () =
   let w2 = Alloc.alloc_n a 4 in
   let w3 = Alloc.alloc_n a 4 in
   let ctx1 =
-    [ 0, true
-    ; 1, true
-    ; 2, false
-    ; 3, false
-    ; 4, true
-    ; 5, false
-    ; 6, true
-    ; 7, false
-    ; 8, false
-    ; 9, false
-    ; 10, false
-    ; 11, false
+    [
+      (0, true);
+      (1, true);
+      (2, false);
+      (3, false);
+      (4, true);
+      (5, false);
+      (6, true);
+      (7, false);
+      (8, false);
+      (9, false);
+      (10, false);
+      (11, false);
     ]
     |> State.of_alist_exn
   in
   Prim_sim.sim_gates ctx1 (Codegen.binary_op a Lir.Bland w1 w2 w3);
   let ctx2 =
-    [ 0, true
-    ; 1, true
-    ; 2, false
-    ; 3, false
-    ; 4, true
-    ; 5, false
-    ; 6, true
-    ; 7, false
-    ; 8, true
-    ; 9, false
-    ; 10, false
-    ; 11, false
+    [
+      (0, true);
+      (1, true);
+      (2, false);
+      (3, false);
+      (4, true);
+      (5, false);
+      (6, true);
+      (7, false);
+      (8, true);
+      (9, false);
+      (10, false);
+      (11, false);
     ]
     |> State.of_alist_exn
   in
   assert (State.equal Bool.equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing lor";
@@ -99,40 +96,41 @@ let () =
   let w2 = Alloc.alloc_n a 4 in
   let w3 = Alloc.alloc_n a 4 in
   let ctx1 =
-    [ 0, true
-    ; 1, true
-    ; 2, false
-    ; 3, false
-    ; 4, true
-    ; 5, false
-    ; 6, true
-    ; 7, false
-    ; 8, false
-    ; 9, false
-    ; 10, false
-    ; 11, false
+    [
+      (0, true);
+      (1, true);
+      (2, false);
+      (3, false);
+      (4, true);
+      (5, false);
+      (6, true);
+      (7, false);
+      (8, false);
+      (9, false);
+      (10, false);
+      (11, false);
     ]
     |> State.of_alist_exn
   in
   Prim_sim.sim_gates ctx1 (Codegen.binary_op a Lir.Blor w1 w2 w3);
   let ctx2 =
-    [ 0, true
-    ; 1, true
-    ; 2, false
-    ; 3, false
-    ; 4, true
-    ; 5, false
-    ; 6, true
-    ; 7, false
-    ; 8, true
-    ; 9, true
-    ; 10, true
-    ; 11, false
+    [
+      (0, true);
+      (1, true);
+      (2, false);
+      (3, false);
+      (4, true);
+      (5, false);
+      (6, true);
+      (7, false);
+      (8, true);
+      (9, true);
+      (10, true);
+      (11, false);
     ]
     |> State.of_alist_exn
   in
   assert (State.equal Bool.equal ctx1 ctx2)
-;;
 
 let test_add_nbit n x y =
   let a = Alloc.empty () in
@@ -145,13 +143,13 @@ let test_add_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + (2 * n), (x + y) mod (1 lsl n) land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i ->
+          (i + (2 * n), (x + y) mod (1 lsl n) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing add";
@@ -159,7 +157,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl n) ~f:(test_add_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_sub_nbit n x y =
   let a = Alloc.empty () in
@@ -172,14 +169,13 @@ let test_sub_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
     @ List.init n ~f:(fun i ->
-          i + (2 * n), (x - y + (1 lsl n)) mod (1 lsl n) land (1 lsl i) <> 0)
+          (i + (2 * n), (x - y + (1 lsl n)) mod (1 lsl n) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing sub";
@@ -187,7 +183,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl n) ~f:(test_sub_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_lt_nbit n x y =
   let a = Alloc.empty () in
@@ -200,13 +195,12 @@ let test_lt_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ [ 2 * n, x < y ]
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ [ (2 * n, x < y) ]
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing lt";
@@ -214,7 +208,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl n) ~f:(test_lt_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_eq_nbit n x y =
   let a = Alloc.empty () in
@@ -227,13 +220,12 @@ let test_eq_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ [ 2 * n, x = y ]
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ [ (2 * n, x = y) ]
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing eq";
@@ -241,7 +233,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl n) ~f:(test_eq_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_mul_nbit n x y =
   let a = Alloc.empty () in
@@ -254,13 +245,13 @@ let test_mul_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + (2 * n), x * y mod (1 lsl n) land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i ->
+          (i + (2 * n), x * y mod (1 lsl n) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing mul";
@@ -268,7 +259,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl n) ~f:(test_mul_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_lsl_nbit n x y =
   let a = Alloc.empty () in
@@ -281,13 +271,13 @@ let test_lsl_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + (2 * n), (x lsl y) mod (1 lsl n) land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i ->
+          (i + (2 * n), (x lsl y) mod (1 lsl n) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing lsl";
@@ -296,7 +286,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl k) ~f:(test_lsl_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_lsr_nbit n x y =
   let a = Alloc.empty () in
@@ -309,13 +298,13 @@ let test_lsr_nbit n x y =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ n0; n1; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, y land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + (2 * n), (x lsr y) mod (1 lsl n) land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, y land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i ->
+          (i + (2 * n), (x lsr y) mod (1 lsl n) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (ctx_equal ctx1 ctx2)
-;;
 
 let () =
   print_endline "Testing lsr";
@@ -324,7 +313,6 @@ let () =
   (List.init (1 lsl n) ~f:(fun i -> List.init (1 lsl k) ~f:(test_lsr_nbit n i))
     : 'a list list)
   |> ignore
-;;
 
 let test_mem n num_cells x =
   let a = Alloc.empty () in
@@ -338,26 +326,25 @@ let test_mem n num_cells x =
   let ctx1 = State.create () in
   Prim_sim.sim_gates ctx1 (Gates.concat [ c; n0; g ]);
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, (x + 1) land (1 lsl i) <> 0)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, (x + 1) land (1 lsl i) <> 0))
     |> State.of_alist_exn
   in
   assert (is_subset ctx2 ctx1);
   Prim_sim.sim_gates ctx1 g;
   let ctx2 =
-    List.init n ~f:(fun i -> i, x land (1 lsl i) <> 0)
-    @ List.init n ~f:(fun i -> i + n, false)
+    List.init n ~f:(fun i -> (i, x land (1 lsl i) <> 0))
+    @ List.init n ~f:(fun i -> (i + n, false))
     |> State.of_alist_exn
   in
   assert (is_subset ctx2 ctx1)
-;;
 
 let () =
   print_endline "Testing mem";
   let n = 8 in
   let num_cells = 256 in
-  (List.init (num_cells - 2) ~f:(fun i -> test_mem n num_cells (i + 1)) : 'a list)
+  (List.init (num_cells - 2) ~f:(fun i -> test_mem n num_cells (i + 1))
+    : 'a list)
   |> ignore
-;;
 
 let () = print_endline "Unit tests passed"

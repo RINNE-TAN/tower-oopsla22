@@ -21,11 +21,7 @@ type value =
   | Vprod of value list
 [@@deriving show, eq]
 
-type uop =
-  | Unot
-  | Utest
-  | Ulnot
-[@@deriving show, eq]
+type uop = Unot | Utest | Ulnot [@@deriving show, eq]
 
 type bop =
   | Band
@@ -45,17 +41,10 @@ type bop =
   | Blsr
 [@@deriving show, eq]
 
-type bound =
-  | Ovar of id
-  | Ominus of id * int
-  | Oconst of int
+type bound = Ovar of id | Ominus of id * int | Oconst of int
 [@@deriving show, eq]
 
-type call =
-  { name : id
-  ; bound : bound option
-  ; args : value list
-  }
+type call = { name : id; bound : bound option; args : value list }
 [@@deriving show, eq]
 
 type exp =
@@ -88,31 +77,24 @@ type stmt =
   | Swith of stmt * stmt
 [@@deriving show, eq]
 
-type id_typ =
-  { name : id
-  ; typ : typ
-  }
+type id_typ = { name : id; typ : typ } [@@deriving show, eq]
+
+type func = {
+  name : id;
+  bound : bound option;
+  args : id_typ list;
+  result : value * typ;
+  body : stmt;
+}
 [@@deriving show, eq]
 
-type func =
-  { name : id
-  ; bound : bound option
-  ; args : id_typ list
-  ; result : value * typ
-  ; body : stmt
-  }
+type static = {
+  name : id;
+  elt_type : typ;
+  size : int;
+  values : value list option;
+}
 [@@deriving show, eq]
 
-type static =
-  { name : id
-  ; elt_type : typ
-  ; size : int
-  ; values : value list option
-  }
-[@@deriving show, eq]
-
-type decl =
-  | Dstatic of static
-  | Dtype of id_typ
-  | Dfunc of func
+type decl = Dstatic of static | Dtype of id_typ | Dfunc of func
 [@@deriving show, eq]

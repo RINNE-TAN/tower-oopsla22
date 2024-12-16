@@ -35,7 +35,8 @@ val check_bound : Ast.func -> Ast.stmt -> unit
 val check_func : Context.t -> Ast.func -> unit
 
 (* Check that a type definition is valid and resolve all of its references *)
-val check_type_decl : ?under_ptr:bool -> Context.t -> Ast.id -> Ast.typ -> Ast.typ
+val check_type_decl :
+  ?under_ptr:bool -> Context.t -> Ast.id -> Ast.typ -> Ast.typ
 
 (* Check that a program is well-formed *)
 val check_decls : ?init:Context.t -> Ast.decl list -> Context.t

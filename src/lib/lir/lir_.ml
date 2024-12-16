@@ -1,11 +1,5 @@
 type id = Symbol.t [@@deriving show, eq]
-
-type typ =
-  | Tunit
-  | Tuint
-  | Tbool
-  | Tprod of typ list
-[@@deriving show, eq]
+type typ = Tunit | Tuint | Tbool | Tprod of typ list [@@deriving show, eq]
 
 type value =
   | Vvar of id
@@ -17,16 +11,7 @@ type value =
 
 type uop = Ulnot [@@deriving show, eq]
 
-type bop =
-  | Bland
-  | Blor
-  | Beq
-  | Blsl
-  | Blsr
-  | Bplus
-  | Bminus
-  | Btimes
-  | Bless
+type bop = Bland | Blor | Beq | Blsl | Blsr | Bplus | Bminus | Btimes | Bless
 [@@deriving show, eq]
 
 type exp =
@@ -45,10 +30,10 @@ type stmt =
   | Sif of id * stmt list
 [@@deriving show, eq]
 
-type modul =
-  { name : id
-  ; out_arg : typ * id
-  ; args : (typ * id) list
-  ; body : stmt list
-  }
+type modul = {
+  name : id;
+  out_arg : typ * id;
+  args : (typ * id) list;
+  body : stmt list;
+}
 [@@deriving show, eq]

@@ -14,12 +14,12 @@ type gate =
   | Ginit of wire
 [@@deriving show, eq, variants]
 
-type modul =
-  { name : Symbol.t
-  ; hp : wire list
-  ; out_args : wire list
-  ; args : wire list
-  ; body : gate list
-  ; cell_size : int
-  }
+type modul = {
+  name : Symbol.t;
+  hp : wire list;
+  out_args : wire list;
+  args : wire list;
+  body : gate list;
+  cell_size : int;
+}
 [@@deriving show, eq]
